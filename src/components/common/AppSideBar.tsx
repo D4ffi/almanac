@@ -29,7 +29,7 @@ import {
 const items = [
     {
         title: "Inicio",
-        url: "#",
+        url: "/home",
         icon: Home,
     },
     {
@@ -39,17 +39,17 @@ const items = [
     },
     {
         title: "Productos",
-        url: "#",
+        url: "/productos",
         icon: BoxesIcon,
     },
     {
         title: "Categorías",
-        url: "#",
+        url: "/categorias",
         icon: TagIcon,
     },
     {
         title: "Configuración",
-        url: "#",
+        url: "/configuracion",
         icon: Settings,
     },
 ]
