@@ -2,8 +2,9 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Corregir el typo en la variable de entorno
-const supabaseUrl = process.env.SUPABASE_URL || process.env.SUBABASE_URL // Mantener compatibilidad con el typo existente
-const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ennupeggpkbbbetfwgol.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVubnVwZWdncGtiYmJldGZ3Z29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ4NDYzNzUsImV4cCI6MjA1MDQyMjM3NX0.rKTyG4QSK5aLW3kvYOhUx0A0WV9-WkZJHH-3Ej7t-cw'
+
 
 // Verificar que las variables estén configuradas
 if (!supabaseUrl || !supabaseKey) {
