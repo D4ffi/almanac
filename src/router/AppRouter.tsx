@@ -1,13 +1,19 @@
 // src/router/AppRouter.tsx
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from '@/components/common/Layout';
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from '@/context/AuthContext'
+import ProtectedRoute from '@/components/common/ProtectedRoute'
+import Layout from '@/components/common/Layout'
 
-// Importar las páginas
-import Home from '@/pages/Home';
-import Productos from '@/pages/Productos';
-import Categorias from '@/pages/Categorias';
-import Configuracion from '@/pages/Configuracion';
+// Páginas públicas
+import LoginPage from '@/pages/LoginPage'
+import RegisterPage from '@/pages/RegisterPage'
+
+// Páginas protegidas
+import Home from '@/pages/Home'
+import Productos from '@/pages/Productos'
+import Categorias from '@/pages/Categorias'
+import Configuracion from '@/pages/Configuracion'
 
 // Página 404
 const NotFound: React.FC = () => {
@@ -25,29 +31,45 @@ const NotFound: React.FC = () => {
                 Volver atrás
             </button>
         </div>
-    );
-};
+    )
+}
 
 const AppRouter: React.FC = () => {
     return (
         <BrowserRouter>
-            <Layout>
+            <AuthProvider>
                 <Routes>
-                    {/* Ruta principal - redirige a home */}
-                    <Route path="/" element={<Navigate to="/home" replace />} />
+                    {/* Rutas públicas */}
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
 
-                    {/* Rutas principales */}
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/productos" element={<Productos />} />
-                    <Route path="/categorias" element={<Categorias />} />
-                    <Route path="/configuracion" element={<Configuracion />} />
+                    {/* Rutas protegidas */}
+                    <Route
+                        path="/*"
+                        element={
+                            <ProtectedRoute>
+                                <Layout>
+                                    <Routes>
+                                        {/* Ruta principal - redirige a home */}
+                                        <Route path="/" element={<Navigate to="/home" replace />} />
 
-                    {/* Ruta 404 - debe ir al final */}
-                    <Route path="*" element={<NotFound />} />
+                                        {/* Rutas principales */}
+                                        <Route path="/home" element={<Home />} />
+                                        <Route path="/productos" element={<Productos />} />
+                                        <Route path="/categorias" element={<Categorias />} />
+                                        <Route path="/configuracion" element={<Configuracion />} />
+
+                                        {/* Ruta 404 */}
+                                        <Route path="*" element={<NotFound />} />
+                                    </Routes>
+                                </Layout>
+                            </ProtectedRoute>
+                        }
+                    />
                 </Routes>
-            </Layout>
+            </AuthProvider>
         </BrowserRouter>
-    );
-};
+    )
+}
 
-export default AppRouter;
+export default AppRouter

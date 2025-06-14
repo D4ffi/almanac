@@ -1,10 +1,14 @@
+// src/components/common/AppSideBar.tsx
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
     Home,
     Search,
     Settings,
     User2,
     ChevronUp,
-    BoxesIcon, TagIcon
+    BoxesIcon,
+    TagIcon,
+    LogOut
 } from "lucide-react"
 import {
     Sidebar,
@@ -24,6 +28,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from '@/context/AuthContext'
 
 // Items del menú principal
 const items = [
@@ -55,6 +60,25 @@ const items = [
 ]
 
 export function AppSidebar() {
+    const navigate = useNavigate()
+    const location = useLocation()
+    const { user, signOut } = useAuth()
+
+    const handleNavigation = (url: string) => {
+        if (url !== '#') {
+            navigate(url)
+        }
+    }
+
+    const handleSignOut = async () => {
+        const { error } = await signOut()
+        if (error) {
+            console.error('Error al cerrar sesión:', error)
+        } else {
+            navigate('/login')
+        }
+    }
+
     return (
         <Sidebar>
             {/* Header del sidebar */}
@@ -62,19 +86,19 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <a href="#">
+                            <button onClick={() => navigate('/home')}>
                                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                     <Home className="size-4" />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    Mi Aplicación
+                    Tlakatl
                   </span>
                                     <span className="truncate text-xs">
                     Dashboard
                   </span>
                                 </div>
-                            </a>
+                            </button>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -86,16 +110,25 @@ export function AppSidebar() {
                     <SidebarGroupLabel>Navegación</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </a>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                            {items.map((item) => {
+                                const isActive = location.pathname === item.url
+                                return (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={isActive}
+                                        >
+                                            <button
+                                                onClick={() => handleNavigation(item.url)}
+                                                className="w-full"
+                                            >
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </button>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                )
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
@@ -113,8 +146,10 @@ export function AppSidebar() {
                                 >
                                     <User2 className="size-4" />
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">Juan Pérez</span>
-                                        <span className="truncate text-xs">juan@empresa.com</span>
+                    <span className="truncate font-semibold">
+                      {user?.user_metadata?.full_name || 'Usuario'}
+                    </span>
+                                        <span className="truncate text-xs">{user?.email}</span>
                                     </div>
                                     <ChevronUp className="ml-auto size-4" />
                                 </SidebarMenuButton>
@@ -125,18 +160,19 @@ export function AppSidebar() {
                                 align="end"
                                 sideOffset={4}
                             >
-                                <DropdownMenuItem onClick={() => console.log('Cuenta clickeada')}>
+                                <DropdownMenuItem onClick={() => navigate('/configuracion')}>
                                     <User2 className="mr-2 size-4" />
-                                    <span>Cuenta</span>
+                                    <span>Mi cuenta</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => console.log('Configuración clickeada')}>
+                                <DropdownMenuItem onClick={() => navigate('/configuracion')}>
                                     <Settings className="mr-2 size-4" />
                                     <span>Configuración</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    onClick={() => console.log('Cerrar sesión clickeado')}
-                                    className="text-red-600"
+                                    onClick={handleSignOut}
+                                    className="text-red-600 focus:text-red-600"
                                 >
+                                    <LogOut className="mr-2 size-4" />
                                     <span>Cerrar sesión</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>

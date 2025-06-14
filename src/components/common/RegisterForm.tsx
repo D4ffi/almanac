@@ -1,6 +1,6 @@
-// src/components/common/LoginForm.tsx
+// src/components/common/RegisterForm.tsx
 import React, { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,73 +9,81 @@ import { Label } from "@/components/ui/label"
 import { useAuth } from '@/context/AuthContext'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
-export function LoginForm({
-                              className,
-                              ...props
-                          }: React.ComponentProps<"div">) {
+export function RegisterForm({
+                                 className,
+                                 ...props
+                             }: React.ComponentProps<"div">) {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
-    const [resetEmailSent, setResetEmailSent] = useState(false)
+    const [success, setSuccess] = useState(false)
 
-    const { signIn, resetPassword } = useAuth()
+    const { signUp } = useAuth()
     const navigate = useNavigate()
-    const location = useLocation()
-
-    // Obtener la página desde donde se redirigió o ir a home por defecto
-    const from = location.state?.from?.pathname || '/home'
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
         setError('')
 
-        if (!email || !password) {
+        if (!email || !password || !confirmPassword) {
             setError('Por favor, completa todos los campos')
             setIsLoading(false)
             return
         }
 
-        const { error } = await signIn(email, password)
+        if (password !== confirmPassword) {
+            setError('Las contraseñas no coinciden')
+            setIsLoading(false)
+            return
+        }
+
+        if (password.length < 6) {
+            setError('La contraseña debe tener al menos 6 caracteres')
+            setIsLoading(false)
+            return
+        }
+
+        const { error } = await signUp(email, password)
 
         if (error) {
-            console.error('Error de login:', error)
-
-            // Manejar diferentes tipos de errores
-            switch (error.message) {
-                case 'Invalid login credentials':
-                    setError('Credenciales inválidas. Verifica tu email y contraseña.')
-                    break
-                case 'Email not confirmed':
-                    setError('Debes confirmar tu email antes de iniciar sesión.')
-                    break
-                default:
-                    setError(error.message || 'Error al iniciar sesión')
-            }
+            console.error('Error de registro:', error)
+            setError(error.message || 'Error al crear la cuenta')
         } else {
-            // Login exitoso, redirigir
-            navigate(from, { replace: true })
+            setSuccess(true)
+            setError('')
         }
 
         setIsLoading(false)
     }
 
-    const handleResetPassword = async () => {
-        if (!email) {
-            setError('Por favor, ingresa tu email para restablecer la contraseña')
-            return
-        }
-
-        const { error } = await resetPassword(email)
-
-        if (error) {
-            setError('Error al enviar email de restablecimiento')
-        } else {
-            setResetEmailSent(true)
-            setError('')
-        }
+    if (success) {
+        return (
+            <div className={cn("flex flex-col gap-6", className)} {...props}>
+                <Card>
+                    <CardContent className="p-6 md:p-8 text-center">
+                        <div className="flex flex-col gap-4">
+                            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            <h1 className="text-2xl font-bold">¡Cuenta creada!</h1>
+                            <p className="text-muted-foreground">
+                                Te hemos enviado un email de confirmación a <strong>{email}</strong>.
+                                Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+                            </p>
+                            <Button onClick={() => navigate('/login')} className="mt-4">
+                                Ir al inicio de sesión
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        )
     }
 
     return (
@@ -85,21 +93,15 @@ export function LoginForm({
                     <form onSubmit={handleSubmit} className="p-6 md:p-8">
                         <div className="flex flex-col gap-6">
                             <div className="flex flex-col items-center text-center">
-                                <h1 className="text-2xl font-bold">Bienvenido de vuelta</h1>
+                                <h1 className="text-2xl font-bold">Crear cuenta</h1>
                                 <p className="text-muted-foreground text-balance">
-                                    Inicia sesión en tu cuenta
+                                    Regístrate para comenzar a gestionar tu negocio
                                 </p>
                             </div>
 
                             {error && (
                                 <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
                                     {error}
-                                </div>
-                            )}
-
-                            {resetEmailSent && (
-                                <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md">
-                                    Se ha enviado un email para restablecer tu contraseña
                                 </div>
                             )}
 
@@ -117,17 +119,7 @@ export function LoginForm({
                             </div>
 
                             <div className="grid gap-3">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Contraseña</Label>
-                                    <button
-                                        type="button"
-                                        onClick={handleResetPassword}
-                                        className="ml-auto text-sm underline-offset-2 hover:underline text-primary"
-                                        disabled={isLoading}
-                                    >
-                                        ¿Olvidaste tu contraseña?
-                                    </button>
-                                </div>
+                                <Label htmlFor="password">Contraseña</Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
@@ -137,6 +129,7 @@ export function LoginForm({
                                         required
                                         disabled={isLoading}
                                         className="pr-10"
+                                        placeholder="Mínimo 6 caracteres"
                                     />
                                     <button
                                         type="button"
@@ -153,26 +146,39 @@ export function LoginForm({
                                 </div>
                             </div>
 
+                            <div className="grid gap-3">
+                                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                                <Input
+                                    id="confirmPassword"
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                    placeholder="Repite tu contraseña"
+                                />
+                            </div>
+
                             <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Iniciando sesión...
+                                        Creando cuenta...
                                     </>
                                 ) : (
-                                    'Iniciar sesión'
+                                    'Crear cuenta'
                                 )}
                             </Button>
 
                             <div className="text-center text-sm">
-                                ¿No tienes una cuenta?{" "}
+                                ¿Ya tienes una cuenta?{" "}
                                 <button
                                     type="button"
-                                    onClick={() => navigate('/register')}
+                                    onClick={() => navigate('/login')}
                                     className="underline underline-offset-4 text-primary hover:text-primary/90"
                                     disabled={isLoading}
                                 >
-                                    Regístrate
+                                    Inicia sesión
                                 </button>
                             </div>
                         </div>
@@ -181,27 +187,15 @@ export function LoginForm({
                     <div className="bg-muted relative hidden md:block">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center p-8">
                             <div className="text-center">
-                                <h2 className="text-2xl font-bold mb-4">¡Gestiona tu negocio!</h2>
+                                <h2 className="text-2xl font-bold mb-4">¡Únete a nosotros!</h2>
                                 <p className="text-muted-foreground">
-                                    Controla tu inventario, productos y categorías de forma sencilla y eficiente.
+                                    Comienza a organizar tu inventario y haz crecer tu negocio con nuestras herramientas.
                                 </p>
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
-
-            <div className="text-muted-foreground text-center text-xs text-balance">
-                Al continuar, aceptas nuestros{" "}
-                <a href="#" className="underline underline-offset-4 hover:text-primary">
-                    Términos de Servicio
-                </a>{" "}
-                y{" "}
-                <a href="#" className="underline underline-offset-4 hover:text-primary">
-                    Política de Privacidad
-                </a>
-                .
-            </div>
         </div>
     )
 }
